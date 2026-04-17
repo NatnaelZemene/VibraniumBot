@@ -6,54 +6,68 @@ from google import genai
 logger = logging.getLogger(__name__)
 
 def generate_question():
-    """Converse with Gemini to fetch a new programming question."""
+    """Converse with Gemini to fetch a new programming question with a retry mechanism."""
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         logger.error("GEMINI_API_KEY is not set in environment variables.")
         return None
 
-    try:
-        client = genai.Client(api_key=api_key)
-        # We use a capable model, gemini-2.5-flash is universally supported in the new SDK
-        model_id = 'gemini-2.5-flash'
-        
-        prompt = """
-        You are a highly-skilled Python programming educator.
-        Generate an interesting, single multiple-choice question about beginner algorithms in Python.
-        Focus on concepts such as sorting, searching, array manipulation, recursion, or string operations.
-        
-        Format the response STRICTLY as a JSON object with this exact structure and NO markdown wrapping:
-        {
-            "question": "The text of the question?",
-            "options": ["Option A text", "Option B text", "Option C text", "Option D text"],
-            "correct_option_id": 0,
-            "explanation": "A short, 1-2 sentence explanation of why this option is correct."
-        }
-        
-        Requirements:
-        1. Keep the JSON payload perfectly valid.
-        2. Ensure "options" contains exactly 4 entries.
-        3. "correct_option_id" must be a number (0, 1, 2, or 3) representing the index of the correct string in the "options" array.
-        4. No markdown formatting like ```json or code blocks around the response. Only Valid raw JSON text.
-        5. "explanation" must be UNDER 200 characters max. Telegram limits the explanation field size.
-        """
-        
-        response = client.models.generate_content(
-            model=model_id,
-            contents=prompt,
-        )
-        text = response.text.strip()
-        
-        # In case the model still outputs markdown code blocks, gently clean it
-        if text.startswith("```json"):
-            text = text[7:]
-        elif text.startswith("```"):
-            text = text[3:]
-        if text.endswith("```"):
-            text = text[:-3]
+    client = genai.Client(api_key=api_key)
+    model_id = 'gemini-2.5-flash'
+    
+    prompt = """
+    You are a highly-skilled Python programming educator.
+    Generate a tricky, advanced multiple-choice question about Python programming.
+    Include short code snippets in the question if possible, but keep it concise.
+    Focus on concepts such as decorators, closures, advanced list comprehensions, time complexity, or subtle language quirks.
+    
+    Format the response STRICTLY as a JSON object with this exact structure and NO markdown wrapping:
+    {
+        "question": "The text of the question (can include short code snippets)?",
+        "options": ["Option A", "Option B", "Option C", "Option D"],
+        "correct_option_id": 0,
+        "explanation": "A concise explanation of why this option is exact and correct."
+    }
+    
+    CRITICAL RESTRICTIONS (for Telegram API compatibility):
+    1. "question" MUST NOT exceed 290 characters.
+    2. Each string inside the "options" array MUST NOT exceed 95 characters.
+    3. "explanation" MUST NOT exceed 195 characters.
+    4. "options" must contain EXACTLY 4 entries.
+    5. "correct_option_id" must be an integer (0, 1, 2, or 3).
+    6. Deliver standard VALID JSON. Do NOT wrap inside ```json or ``` blocks.
+    """
+
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            logger.info(f"Generating question... (Attempt {attempt + 1}/{max_retries})")
+            response = client.models.generate_content(
+                model=model_id,
+                contents=prompt,
+            )
+            text = response.text.strip()
             
-        return json.loads(text.strip())
-        
-    except Exception as e:
-        logger.error(f"Failed to generate question from Gemini AI: {e}", exc_info=True)
-        return None
+            # Clean up potential markdown code blocks
+            if text.startswith("```json"):
+                text = text[7:]
+            elif text.startswith("```"):
+                text = text[3:]
+            if text.endswith("```"):
+                text = text[:-3]
+                
+            question_data = json.loads(text.strip())
+            
+            # Basic validation
+            if "question" in question_data and len(question_data.get("options", [])) == 4:
+                return question_data
+            else:
+                logger.warning(f"Invalid format received from Gemini: {question_data}")
+                
+        except json.JSONDecodeError as je:
+            logger.warning(f"JSON decode failed on attempt {attempt + 1}: {je}\nRaw output: {text}")
+        except Exception as e:
+            logger.error(f"Failed to generate question from Gemini AI on attempt {attempt + 1}: {e}", exc_info=True)
+            
+    logger.error("All attempts to generate a question failed.")
+    return None
