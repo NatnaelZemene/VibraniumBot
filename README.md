@@ -1,46 +1,75 @@
-# Daily Programming Quiz Telegram Bot
+# 🤖 VibraniumBot - The AI Telegram Quiz Master
 
-This is a Telegram Bot designed to generate and send a completely fresh programming/tech quiz to a specific channel every day, fully powered by AI (Google Gemini).
+VibraniumBot is a fully autonomous Telegram bot designed to foster a community of Python programmers. It uses Google's Gemini 2.5 Flash AI to generate advanced, tricky Python quizzes every single day, posts them to a Telegram group, tracks who gets the right answers, and announces a worldwide leaderboard every Sunday!
 
-## Prerequisites
+## 🌟 Key Features
 
-1.  **Python 3.10+** minimum
-2.  **Telegram Bot Token:** Grab one from [BotFather](https://t.me/BotFather) on Telegram.
-3.  **Telegram Channel:** Create a channel, add the bot to it **as an Administrator** (so it can send polls). Get the channel username (e.g., `@my_awesome_tech_channel`).
-4.  **Google Gemini API Key:** Grab a free key from the [Google AI Studio](https://aistudio.google.com/).
+- **🤖 AI-Powered Questions:** Uses `google-genai` to craft unique, highly technical Python quizzes every day (focusing on decorators, closures, time complexity, etc.).
+- **📊 Interactive Polls:** Converts the AI JSON response into native Telegram Quiz Polls.
+- **🏆 Live Scoring (PostgreSQL):** Tracks every user's correct answers securely in a PostgreSQL Database (ready for cloud deployment).
+- **🎉 Weekly Leaderboards:** Automatically tallies scores and announces the Top 3 "Algorithm Champions" to the group every Sunday at 8:00 PM UTC, then resets scores for the next week.
+- **⚡️ 24/7 Free Hosting Ready:** Includes a lightweight Flask `keep_alive` server designed specifically to bypass Render's free-tier sleep restrictions when paired with a pinging service like UptimeRobot.
 
-## Installation
+## 🛠️ Tech Stack
 
-1. Create a virtual environment and install the required packages:
+- **Language:** Python 3.10+
+- **APIs:** Telegram Bot API (`python-telegram-bot[job-queue]`), Google Gemini API (`google-genai`)
+- **Database:** PostgreSQL (`psycopg2-binary`) via [Neon.tech](https://neon.tech)
+- **Web Server:** `Flask` (for deployment keep-alive pinging)
 
-```bash
-python -m venv venv
-.\venv\Scripts\activate  # On Windows
-pip install -r requirements.txt
-```
+## 🔑 Environment Variables (`.env`)
 
-2. Duplicate `.env.example` as `.env`, or rename it, and fill out the details:
+To run this bot, you must create a `.env` file in the root directory with the following keys:
 
 ```env
-TELEGRAM_BOT_TOKEN=123456789:ABCDefgh-your-bot-token
-TELEGRAM_CHANNEL_ID=@your_channel_username_here
-GEMINI_API_KEY=AIzaSy...your_gemini_key
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token_from_botfather
+TELEGRAM_CHANNEL_ID=@your_telegram_group_username  # (Must be a group so users can answer un-anonymously)
+GEMINI_API_KEY=your_google_studio_gemini_api_key
+DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
 ```
 
-## Running the bot
+## 🚀 Local Development / Setup
 
-```bash
-python main.py
-```
+1. **Clone the repository and enter the directory:**
+   ```bash
+   git clone https://github.com/NatnaelZemene/VibraniumBot.git
+   cd "vibranium bot"
+   ```
 
-## How It Works
+2. **Create a virtual environment and install dependencies:**
+   ```bash
+   python -m venv venv
+   .\venv\Scripts\activate  # Windows
+   pip install -r requirements.txt
+   ```
 
-1.  **Start:** The bot spins up and listens to telegram chat updates.
-2.  **Scheduling:** Using `python-telegram-bot`'s `JobQueue`, the bot triggers a function once per day at `10:00 AM UTC`. You can modify `main.py` timezone and time logic to change this.
-3.  **Generation:** When called, the bot asks Gemini (`gemini-1.5-flash`) for a 4-option JSON puzzle with explanations.
-4.  **Sending:** The bot reads the JSON, translates it into a native Telegram Poll element, and broadcasts it to your specified Channel.
+3. **Run the bot:**
+   ```bash
+   python main.py
+   ```
+   *The console should read: "Starting web server to stay awake..." and "Bot is polling..."*
 
-## Manual Testing
+## ☁️ Free Cloud Deployment Guide
 
-Before waiting to see if tomorrow's test goes off, test it individually:
-- Send the `/trigger` command to your bot via Direct Message on Telegram, and watch it generate and push a new quiz to the channel immediately!
+This project is optimized for a **100% Free** serverless setup using Render + Neon + UptimeRobot.
+
+1. **Get a Free PostgreSQL Database:** Go to [Neon Database](https://neon.tech), create a free project, and copy the `DATABASE_URL` connection string. Put this in your `.env`.
+2. **Deploy to Render:** 
+   - Go to [Render.com](https://render.com) and create a new **Web Service**.
+   - Connect this GitHub repository.
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `python main.py`
+   - Add your 4 Environment Variables (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHANNEL_ID`, `GEMINI_API_KEY`, `DATABASE_URL`).
+   - Click Deploy.
+3. **Keep It Awake (The Magic Trick):**
+   - When Render finishes deploying, it gives you a `onrender.com` URL.
+   - Go to [UptimeRobot](https://uptimerobot.com/) (free).
+   - Create an `HTTP(s)` monitor pointing to your Render URL.
+   - Set the ping interval to **14 minutes**.
+   - *Your bot will now run 24/7 forever without sleeping or costing money!*
+
+## 🎮 Commands
+
+Once running, you can interact with the bot in Telegram:
+- `/start` - Verify the bot is alive.
+- `/trigger` - (Admin/Test) Force the bot to immediately generate and send a quiz right now instead of waiting for the 10:00 AM UTC schedule.
