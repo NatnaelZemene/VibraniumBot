@@ -2,3 +2,4 @@ python-telegram-bot[job-queue]
 google-genai
 python-dotenv
 psycopg2-binary
+Flask
