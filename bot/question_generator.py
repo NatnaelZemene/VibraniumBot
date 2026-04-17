@@ -35,6 +35,7 @@ def generate_question():
         2. Ensure "options" contains exactly 4 entries.
         3. "correct_option_id" must be a number (0, 1, 2, or 3) representing the index of the correct string in the "options" array.
         4. No markdown formatting like ```json or code blocks around the response. Only Valid raw JSON text.
+        5. "explanation" must be UNDER 200 characters max. Telegram limits the explanation field size.
         """
         
         response = client.models.generate_content(
