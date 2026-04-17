@@ -1,6 +1,6 @@
 # 🤖 VibraniumBot - The AI Telegram Quiz Master
 
-VibraniumBot is a fully autonomous Telegram bot designed to foster a community of Python programmers. It uses Google's Gemini 2.5 Flash AI to generate advanced, tricky Python quizzes every single day, posts them to a Telegram group, tracks who gets the right answers, and announces a worldwide leaderboard every Sunday!
+VibraniumBot is a fully autonomous Telegram bot designed to foster a community of Nathy | Vibranium Coder. It uses Google's Gemini 2.5 Flash AI to generate advanced, tricky Python quizzes every single day, posts them to a Telegram group, tracks who gets the right answers, and announces a worldwide leaderboard every Sunday!
 
 ## 🌟 Key Features
 
