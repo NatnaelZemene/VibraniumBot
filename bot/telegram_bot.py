@@ -31,7 +31,7 @@ async def send_daily_quiz(context: ContextTypes.DEFAULT_TYPE):
             type="quiz",  # Quiz mode enables correct/incorrect tracking
             correct_option_id=question_data["correct_option_id"],
             explanation=question_data.get("explanation", ""),
-            is_anonymous=False  # MUST be False to track who answered to build the leaderboard
+            is_anonymous=True  # MUST be True for Channels. Note: We cannot track user scores in Channels.
         )
         # Store the correct answer id in memory to verify user responses later
         context.bot_data[message.poll.id] = question_data["correct_option_id"]
