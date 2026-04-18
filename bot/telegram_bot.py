@@ -1,9 +1,10 @@
 import os
+import uuid
 import asyncio
 import logging
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes, PollAnswerHandler
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 from .question_generator import generate_question
 from .database import add_score, get_top_users, reset_weekly_scores
 
@@ -34,38 +35,83 @@ async def send_daily_quiz(context: ContextTypes.DEFAULT_TYPE):
                 parse_mode=ParseMode.HTML
             )
             
-        message = await context.bot.send_poll(
+        quiz_id = str(uuid.uuid4())[:8] # Short unique ID for the callback data
+        correct_idx = question_data["correct_option_id"]
+        
+        # Save correct answer, empty set to prevent double answering, and explanation
+        context.bot_data[f"quiz_{quiz_id}_correct"] = correct_idx
+        context.bot_data[f"quiz_{quiz_id}_answered"] = set()
+        context.bot_data[f"quiz_{quiz_id}_explanation"] = question_data.get("explanation", "That is the correct answer!")
+
+        # Create inline keyboard from the AI options
+        keyboard = []
+        for i, option in enumerate(question_data["options"]):
+            # Setup the data that will be sent back when the user taps it (max 64 bytes)
+            callback_data = f"q:{quiz_id}:{i}"
+            keyboard.append([InlineKeyboardButton(text=option, callback_data=callback_data)])
+            
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        # Post the question itself with the clickable inline keyboard
+        question_text = f"🤖 <b>Daily Challenge</b>\n\n{question_data['question']}\n\n<i>Tap a button below to answer!</i>"
+        
+        await context.bot.send_message(
             chat_id=channel_id,
-            question=question_data["question"],
-            options=question_data["options"],
-            type="quiz",  # Quiz mode enables correct/incorrect tracking
-            correct_option_id=question_data["correct_option_id"],
-            explanation=question_data.get("explanation", ""),
-            is_anonymous=True,  # MUST be True for Channels. Note: We cannot track user scores in Channels.
-            explanation_parse_mode=ParseMode.HTML
+            text=question_text,
+            reply_markup=reply_markup,
+            parse_mode=ParseMode.HTML
         )
-        # Store the correct answer id in memory to verify user responses later
-        context.bot_data[message.poll.id] = question_data["correct_option_id"]
-        logger.info("Quiz sent successfully!")
+        
+        logger.info("Quiz with inline buttons sent successfully!")
     except Exception as e:
-        logger.error(f"Error sending poll: {e}", exc_info=True)
+        logger.error(f"Error sending inline quiz: {e}", exc_info=True)
 
 
-async def handle_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Triggered when a user answers the non-anonymous quiz poll."""
-    answer = update.poll_answer
-    poll_id = answer.poll_id
-    user = answer.user
+async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Triggered when a user clicks an inline button on a quiz message."""
+    query = update.callback_query
+    user = query.from_user
     
-    # Verify if it's the correct answer
-    correct_id = context.bot_data.get(poll_id)
-    if correct_id is not None and answer.option_ids:
-        user_choice = answer.option_ids[0]
-        if user_choice == correct_id:
-            # They got it right! Add 1 point
-            username = user.username or user.first_name or f"User_{user.id}"
-            add_score(user.id, username, points=1)
-            logger.info(f"Leaderboard updated: 1 point for {username}")
+    if not query.data or not query.data.startswith("q:"):
+        return
+        
+    _, quiz_id, chosen_idx_str = query.data.split(":")
+    chosen_idx = int(chosen_idx_str)
+    
+    correct_idx = context.bot_data.get(f"quiz_{quiz_id}_correct")
+    answered_users = context.bot_data.get(f"quiz_{quiz_id}_answered")
+    explanation = context.bot_data.get(f"quiz_{quiz_id}_explanation", "")
+    
+    # If the bot restarted or the quiz is too old to be in memory
+    if correct_idx is None or answered_users is None:
+        await query.answer("This quiz has expired or the bot was restarted recently!", show_alert=True)
+        return
+        
+    # Prevent answering multiple times (1 shot max)
+    if user.id in answered_users:
+        await query.answer("Stop! You already answered this quiz. No double dipping! 🚫", show_alert=True)
+        return
+        
+    # Record that this user answered, preventing them from answering again
+    answered_users.add(user.id)
+    
+    if chosen_idx == correct_idx:
+        # They got it right! Update DB!
+        username = user.username or user.first_name or f"User_{user.id}"
+        add_score(user.id, username, points=1)
+        logger.info(f"Leaderboard updated: 1 DB point for {username}")
+        
+        # 'show_alert=True' pops up a dialog on the user's phone directly
+        await query.answer(
+            text=f"🎉 CORRECT! You earned 1 point for the Leaderboard!\n\nExplanation: {explanation}", 
+            show_alert=True
+        )
+    else:
+        # They got it wrong.
+        await query.answer(
+            text=f"❌ WRONG! No points for you this time.\n\nExplanation: {explanation}", 
+            show_alert=True
+        )
 
 
 async def announce_weekly_winners(context: ContextTypes.DEFAULT_TYPE):

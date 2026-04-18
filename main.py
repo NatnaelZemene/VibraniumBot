@@ -3,8 +3,8 @@ import sys
 import logging
 import datetime
 from dotenv import load_dotenv
-from telegram.ext import Application, CommandHandler, PollAnswerHandler
-from bot.telegram_bot import start_command, trigger_command, send_daily_quiz, handle_poll_answer, announce_weekly_winners
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler
+from bot.telegram_bot import start_command, trigger_command, send_daily_quiz, handle_button_click, announce_weekly_winners
 from bot.database import init_db
 from keep_alive import keep_alive
 
@@ -38,8 +38,8 @@ def main():
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("trigger", trigger_command))
     
-    # Needs a dedicated poll answer handler so we know who voted!
-    application.add_handler(PollAnswerHandler(handle_poll_answer))
+    # Needs a dedicated button callback handler so we know who pressed the answer!
+    application.add_handler(CallbackQueryHandler(handle_button_click))
 
     # 4. Schedule the daily job & weekly job
     # EAT (Ethiopian Time) is UTC+3.
