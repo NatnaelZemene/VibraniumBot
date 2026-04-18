@@ -44,18 +44,37 @@ async def send_daily_quiz(context: ContextTypes.DEFAULT_TYPE):
         context.bot_data[f"quiz_{quiz_id}_explanation"] = question_data.get("explanation", "That is the correct answer!")
 
         # Create inline keyboard from the AI options
-        keyboard = []
         labels = ["A", "B", "C", "D"]
+        formatted_options = []
+        
+        button_row_1 = []
+        button_row_2 = []
+
         for i, option in enumerate(question_data["options"]):
             label = labels[i] if i < len(labels) else str(i)
+            # Clean up literal "\n" strings from the AI and display them nicely
+            cleaned_option = str(option).replace("\\n", "\n   ")
+            
+            # Format the text with HTML bold for the label
+            formatted_options.append(f"<b>{label})</b> {cleaned_option}")
+            
             # Setup the data that will be sent back when the user taps it (max 64 bytes)
             callback_data = f"q:{quiz_id}:{i}"
-            keyboard.append([InlineKeyboardButton(text=f"{label}) {option}", callback_data=callback_data)])
+            btn = InlineKeyboardButton(text=f"{label}", callback_data=callback_data)
             
-        reply_markup = InlineKeyboardMarkup(keyboard)
+            # Group buttons 2x2 for a cleaner UI layout
+            if i < 2:
+                button_row_1.append(btn)
+            else:
+                button_row_2.append(btn)
+                
+        reply_markup = InlineKeyboardMarkup([button_row_1, button_row_2])
+        
+        # Join options with a blank line between them for readability
+        options_text = "\n\n".join(formatted_options)
 
         # Post the question itself with the clickable inline keyboard
-        question_text = f"🤖 <b>Daily Challenge</b>\n\n{question_data['question']}\n\n<i>Tap a button below to answer!</i>"
+        question_text = f"🤖 <b>Daily Challenge</b>\n\n{question_data['question']}\n\n{options_text}\n\n<i>Tap a letter below to answer!</i>"
         
         await context.bot.send_message(
             chat_id=channel_id,
