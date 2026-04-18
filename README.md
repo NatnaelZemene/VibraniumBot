@@ -23,7 +23,7 @@ Powered by **Google\'s Gemini 2.5 Flash AI**, it doesn\'t just send questions—
 ## ✨ Key Features
 
 - **🧠 Endless AI Content:** Generates unique questions on Python decorators, closures, Big O time complexity, lists, trees, and more. No pre-written question banks!
-- **🎨 Custom Inline Buttons & Pop-ups:** Bypasses Telegram\'s "Anonymous Channel" limitations. Users tap beautiful A/B/C/D buttons and get immediate feedback (Correct/Wrong + AI Explanation) in a native pop-up alert limit.
+- **🎨 Custom Inline Buttons & Pop-ups:** Bypasses Telegram\'s "Anonymous Channel" limitations. Users tap beautiful A/B/C/D buttons and get immediate feedback (Correct/Wrong + AI Explanation) in a native pop-up alert.
 - **🏆 Live Database Scoring:** Connects to a PostgreSQL database (Neon.tech) to securely track points. Stops users from answering the same question twice!
 - **⏰ Fully Automated Scheduling:** Set it and forget it! Defaults to sending the daily challenge at **8:00 AM (East Africa Time)** and announces Weekly Winners every **Sunday at 8:00 PM EAT**.
 - **⚡️ 24/7 Free Hosting Ready:** Built with a lightweight \Flask\ server attached, allowing it to run continuously on free cloud platforms like Render without going to sleep.
@@ -43,7 +43,7 @@ You will need accounts on:
 
 ### 2️⃣ Clone and Setup Locally
 
-Open your terminal and run:
+Open your terminal and run the following commands sequentially:
 
 \\ash
 # 1. Clone the repository
@@ -76,7 +76,7 @@ DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
 
 \\ash
 python main.py
-\*If everything is correct, your console will print: "Bot is polling..." and the background Flask server will start!*
+\*If everything is configured correctly, your console will print: "Bot is polling..." and the background Flask server will start!*
 
 ---
 
