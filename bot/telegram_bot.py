@@ -25,6 +25,15 @@ async def send_daily_quiz(context: ContextTypes.DEFAULT_TYPE):
 
     try:
         logger.info(f"Targeting channel/group {channel_id}")
+        
+        quiz_context = question_data.get("context", "").strip()
+        if quiz_context:
+            await context.bot.send_message(
+                chat_id=channel_id,
+                text=quiz_context,
+                parse_mode=ParseMode.HTML
+            )
+            
         message = await context.bot.send_poll(
             chat_id=channel_id,
             question=question_data["question"],
@@ -33,7 +42,6 @@ async def send_daily_quiz(context: ContextTypes.DEFAULT_TYPE):
             correct_option_id=question_data["correct_option_id"],
             explanation=question_data.get("explanation", ""),
             is_anonymous=True,  # MUST be True for Channels. Note: We cannot track user scores in Channels.
-            question_parse_mode=ParseMode.HTML,
             explanation_parse_mode=ParseMode.HTML
         )
         # Store the correct answer id in memory to verify user responses later

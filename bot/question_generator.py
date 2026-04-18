@@ -17,26 +17,31 @@ def generate_question():
     
     prompt = """
     You are a highly-skilled Python programming educator.
-    Generate a tricky, advanced multiple-choice question about Python programming.
-    Include short code snippets in the question if possible, but keep it concise.
-    Focus on concepts such as decorators, closures, advanced list comprehensions, time complexity, or subtle language quirks.
+    Generate a multiple-choice question about Python programming or algorithms. 
+    Mix it up: sometimes generate core algorithmic conceptual questions (time complexity, lists, trees), and other times generate tricky Python snippet questions.
+    
+    If the question requires reading Python code, place the code inside the "context" field wrapped EXACTLY like this to get colorful syntax highlighting in Telegram:
+    <pre><code class="language-python">
+    def your_code_here():
+        pass
+    </code></pre>
     
     Format the response STRICTLY as a JSON object with this exact structure and NO markdown wrapping:
     {
-        "question": "The text of the question? Use HTML <code> or <pre> tags for Python code.",
+        "context": "Any introductory text or colorful HTML code snippet. (Can be an empty string if no code is needed)",
+        "question": "The actual question text (e.g. 'What is the output?', 'What is the time complexity?'). PLAIN TEXT ONLY.",
         "options": ["Option A", "Option B", "Option C", "Option D"],
         "correct_option_id": 0,
-        "explanation": "A concise explanation. Use HTML <code> tags for code snippets."
+        "explanation": "A concise explanation. Use basic HTML <code> or <b> tags."
     }
     
     CRITICAL RESTRICTIONS (for Telegram API compatibility):
-    1. "question" MUST NOT exceed 290 characters (excluding HTML tags).
-    2. Each string inside the "options" array MUST NOT exceed 95 characters (PLAIN TEXT ONLY, NO HTML).
-    3. "explanation" MUST NOT exceed 195 characters (excluding HTML tags).
-    4. "options" must contain EXACTLY 4 entries.
-    5. "correct_option_id" must be an integer (0, 1, 2, or 3).
-    6. Deliver standard VALID JSON. Do NOT wrap inside ```json or ``` blocks.
-    7. Use standard HTML tags (<code>, <b>, <i>, <pre>) for formatting in 'question' and 'explanation'. DO NOT use markdown backticks!
+    1. "question" MUST NOT exceed 290 characters and must be PLAIN TEXT ONLY (no HTML tags).
+    2. "options" must contain EXACTLY 4 entries, each under 95 characters (PLAIN TEXT ONLY).
+    3. "explanation" MUST NOT exceed 195 characters.
+    4. "correct_option_id" must be an integer (0, 1, 2, or 3).
+    5. Deliver standard VALID JSON. Do NOT wrap inside ```json or ``` blocks.
+    6. Escape all internal quotes properly so the JSON remains valid.
     """
 
     max_retries = 3
