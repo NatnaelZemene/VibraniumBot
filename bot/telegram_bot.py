@@ -53,14 +53,14 @@ async def send_daily_quiz(context: ContextTypes.DEFAULT_TYPE):
         for i, option in enumerate(question_data["options"]):
             label = labels[i] if i < len(labels) else str(i)
             # Clean up literal "\n" strings from the AI and display them nicely
-            cleaned_option = str(option).replace("\\n", "\n   ")
+            cleaned_option = str(option).replace("\\n", "\n   ").replace("`", "")
             
-            # Format the text with HTML bold for the label
-            formatted_options.append(f"<b>{label})</b> {cleaned_option}")
+            # Format the text with HTML bold for the label, and put the answer inside <code> block so it has a cool background
+            formatted_options.append(f"<b>{label})</b> <code>{cleaned_option}</code>")
             
             # Setup the data that will be sent back when the user taps it (max 64 bytes)
             callback_data = f"q:{quiz_id}:{i}"
-            btn = InlineKeyboardButton(text=f"{label}", callback_data=callback_data)
+            btn = InlineKeyboardButton(text=f"Option {label}", callback_data=callback_data)
             
             # Group buttons 2x2 for a cleaner UI layout
             if i < 2:
