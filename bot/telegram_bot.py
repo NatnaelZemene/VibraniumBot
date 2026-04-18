@@ -74,7 +74,7 @@ async def send_daily_quiz(context: ContextTypes.DEFAULT_TYPE):
         options_text = "\n\n".join(formatted_options)
 
         # Post the question itself with the clickable inline keyboard
-        question_text = f"🤖 <b>Daily Challenge</b>\n\n{question_data['question']}\n\n{options_text}\n\n<i>Tap a letter below to answer!</i>"
+        question_text = f"✌️ <b>Daily Challenge</b>\n\n{question_data['question']}\n\n{options_text}\n\n<i>Tap a letter below to answer!</i>"
         
         await context.bot.send_message(
             chat_id=channel_id,
