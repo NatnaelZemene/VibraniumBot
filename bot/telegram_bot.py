@@ -38,17 +38,19 @@ async def send_daily_quiz(context: ContextTypes.DEFAULT_TYPE):
         quiz_id = str(uuid.uuid4())[:8] # Short unique ID for the callback data
         correct_idx = question_data["correct_option_id"]
         
-        # Save correct answer, empty set to prevent double answering, and explanation
+        # Save correct answer, empty dict to track user choices, and explanation
         context.bot_data[f"quiz_{quiz_id}_correct"] = correct_idx
-        context.bot_data[f"quiz_{quiz_id}_answered"] = set()
+        context.bot_data[f"quiz_{quiz_id}_answered"] = {}  # Changed to dict
         context.bot_data[f"quiz_{quiz_id}_explanation"] = question_data.get("explanation", "That is the correct answer!")
 
         # Create inline keyboard from the AI options
         keyboard = []
+        labels = ["A", "B", "C", "D"]
         for i, option in enumerate(question_data["options"]):
+            label = labels[i] if i < len(labels) else str(i)
             # Setup the data that will be sent back when the user taps it (max 64 bytes)
             callback_data = f"q:{quiz_id}:{i}"
-            keyboard.append([InlineKeyboardButton(text=option, callback_data=callback_data)])
+            keyboard.append([InlineKeyboardButton(text=f"{label}) {option}", callback_data=callback_data)])
             
         reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -89,11 +91,14 @@ async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE
         
     # Prevent answering multiple times (1 shot max)
     if user.id in answered_users:
-        await query.answer("Stop! You already answered this quiz. No double dipping! 🚫", show_alert=True)
+        previous_idx = answered_users[user.id]
+        labels = ["A", "B", "C", "D"]
+        label = labels[previous_idx] if previous_idx < len(labels) else str(previous_idx)
+        await query.answer(f"Stop! You already clicked button {label}. No double dipping! 🚫", show_alert=True)
         return
         
     # Record that this user answered, preventing them from answering again
-    answered_users.add(user.id)
+    answered_users[user.id] = chosen_idx
     
     if chosen_idx == correct_idx:
         # They got it right! Update DB!
@@ -102,16 +107,16 @@ async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE
         logger.info(f"Leaderboard updated: 1 DB point for {username}")
         
         # 'show_alert=True' pops up a dialog on the user's phone directly
-        await query.answer(
-            text=f"🎉 CORRECT! You earned 1 point for the Leaderboard!\n\nExplanation: {explanation}", 
-            show_alert=True
-        )
+        alert_text = f"🎉 CORRECT! You earned 1 point!\n\nExplanation: {explanation}"
+        if len(alert_text) > 195:
+            alert_text = alert_text[:195] + "..."
+        await query.answer(text=alert_text, show_alert=True)
     else:
         # They got it wrong.
-        await query.answer(
-            text=f"❌ WRONG! No points for you this time.\n\nExplanation: {explanation}", 
-            show_alert=True
-        )
+        alert_text = f"❌ WRONG! No points for you.\n\nExplanation: {explanation}"
+        if len(alert_text) > 195:
+            alert_text = alert_text[:195] + "..."
+        await query.answer(text=alert_text, show_alert=True)
 
 
 async def announce_weekly_winners(context: ContextTypes.DEFAULT_TYPE):

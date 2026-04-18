@@ -15,7 +15,7 @@ def generate_question():
     client = genai.Client(api_key=api_key)
     model_id = 'gemini-2.5-flash'
     
-    prompt = """
+    prompt = """  
     You are a highly-skilled Python programming educator.
     Generate a multiple-choice question about Python programming or algorithms. 
     Mix it up: sometimes generate core algorithmic conceptual questions (time complexity, lists, trees), and other times generate tricky Python snippet questions.
