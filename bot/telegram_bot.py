@@ -2,6 +2,7 @@ import os
 import asyncio
 import logging
 from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes, PollAnswerHandler
 from .question_generator import generate_question
 from .database import add_score, get_top_users, reset_weekly_scores
@@ -31,7 +32,9 @@ async def send_daily_quiz(context: ContextTypes.DEFAULT_TYPE):
             type="quiz",  # Quiz mode enables correct/incorrect tracking
             correct_option_id=question_data["correct_option_id"],
             explanation=question_data.get("explanation", ""),
-            is_anonymous=True  # MUST be True for Channels. Note: We cannot track user scores in Channels.
+            is_anonymous=True,  # MUST be True for Channels. Note: We cannot track user scores in Channels.
+            question_parse_mode=ParseMode.HTML,
+            explanation_parse_mode=ParseMode.HTML
         )
         # Store the correct answer id in memory to verify user responses later
         context.bot_data[message.poll.id] = question_data["correct_option_id"]

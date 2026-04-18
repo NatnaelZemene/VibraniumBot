@@ -23,19 +23,20 @@ def generate_question():
     
     Format the response STRICTLY as a JSON object with this exact structure and NO markdown wrapping:
     {
-        "question": "The text of the question (can include short code snippets)?",
+        "question": "The text of the question? Use HTML <code> or <pre> tags for Python code.",
         "options": ["Option A", "Option B", "Option C", "Option D"],
         "correct_option_id": 0,
-        "explanation": "A concise explanation of why this option is exact and correct."
+        "explanation": "A concise explanation. Use HTML <code> tags for code snippets."
     }
     
     CRITICAL RESTRICTIONS (for Telegram API compatibility):
-    1. "question" MUST NOT exceed 290 characters.
-    2. Each string inside the "options" array MUST NOT exceed 95 characters.
-    3. "explanation" MUST NOT exceed 195 characters.
+    1. "question" MUST NOT exceed 290 characters (excluding HTML tags).
+    2. Each string inside the "options" array MUST NOT exceed 95 characters (PLAIN TEXT ONLY, NO HTML).
+    3. "explanation" MUST NOT exceed 195 characters (excluding HTML tags).
     4. "options" must contain EXACTLY 4 entries.
     5. "correct_option_id" must be an integer (0, 1, 2, or 3).
     6. Deliver standard VALID JSON. Do NOT wrap inside ```json or ``` blocks.
+    7. Use standard HTML tags (<code>, <b>, <i>, <pre>) for formatting in 'question' and 'explanation'. DO NOT use markdown backticks!
     """
 
     max_retries = 3
