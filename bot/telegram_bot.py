@@ -113,7 +113,7 @@ async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE
         
     # Prevent answering multiple times, but give the correct answer if they try
     if user.id in answered_users:
-        alert_text = f"You already played this quiz! 🛑\n\nThe correct answer is Option {correct_label}.\n\n💡 {explanation}"
+        alert_text = f"🛑 Already played! (Answer: Option {correct_label})\n\n💡 {explanation}"
         if len(alert_text) > 195:
             alert_text = alert_text[:192] + "..."
         await query.answer(text=alert_text, show_alert=True)
@@ -129,13 +129,13 @@ async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE
         logger.info(f"Leaderboard updated: 1 DB point for {username}")
         
         # 'show_alert=True' pops up a dialog on the user's phone directly
-        alert_text = f"🎉 CONGRATULATIONS! You answered correctly! 🚀 Keep up the fantastic work!\n\n💡 {explanation}"
+        alert_text = f"🎉 Correct! +1 point!\n\n💡 {explanation}"
         if len(alert_text) > 195:
             alert_text = alert_text[:192] + "..."
         await query.answer(text=alert_text, show_alert=True)
     else:
         # They got it wrong.
-        alert_text = f"❌ You made a mistake! But that's okay, you can improve your skills by participating in these challenges! 💪\n\n💡 {explanation}"
+        alert_text = f"❌ Incorrect! Keep practicing!\n\n💡 {explanation}"
         if len(alert_text) > 195:
             alert_text = alert_text[:192] + "..."
         await query.answer(text=alert_text, show_alert=True)

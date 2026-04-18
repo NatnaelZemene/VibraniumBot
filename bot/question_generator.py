@@ -38,7 +38,7 @@ def generate_question():
     CRITICAL RESTRICTIONS (for Telegram API compatibility):
     1. "question" MUST NOT exceed 290 characters and must be PLAIN TEXT ONLY (no HTML tags).
     2. "options" must contain EXACTLY 4 entries, each under 95 characters (PLAIN TEXT ONLY).
-    3. "explanation" MUST NOT exceed 195 characters.
+    3. "explanation" MUST NOT exceed 150 characters.
     4. "correct_option_id" must be an integer (0, 1, 2, or 3).
     5. Deliver standard VALID JSON. Do NOT wrap inside ```json or ``` blocks.
     6. Escape all internal quotes properly so the JSON remains valid.
