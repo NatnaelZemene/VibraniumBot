@@ -107,13 +107,16 @@ async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE
     if correct_idx is None or answered_users is None:
         await query.answer("This quiz has expired or the bot was restarted recently!", show_alert=True)
         return
+    
+    labels = ["A", "B", "C", "D"]
+    correct_label = labels[correct_idx] if correct_idx < len(labels) else str(correct_idx)
         
-    # Prevent answering multiple times (1 shot max)
+    # Prevent answering multiple times, but give the correct answer if they try
     if user.id in answered_users:
-        previous_idx = answered_users[user.id]
-        labels = ["A", "B", "C", "D"]
-        label = labels[previous_idx] if previous_idx < len(labels) else str(previous_idx)
-        await query.answer(f"Stop! You already clicked button {label}. No double dipping! 🚫", show_alert=True)
+        alert_text = f"You already played this quiz! 🛑\n\nThe correct answer is Option {correct_label}.\n\n💡 {explanation}"
+        if len(alert_text) > 195:
+            alert_text = alert_text[:192] + "..."
+        await query.answer(text=alert_text, show_alert=True)
         return
         
     # Record that this user answered, preventing them from answering again
@@ -126,15 +129,15 @@ async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE
         logger.info(f"Leaderboard updated: 1 DB point for {username}")
         
         # 'show_alert=True' pops up a dialog on the user's phone directly
-        alert_text = f"🎉 CORRECT! You earned 1 point!\n\nExplanation: {explanation}"
+        alert_text = f"🎉 CONGRATULATIONS! You answered correctly! 🚀 Keep up the fantastic work!\n\n💡 {explanation}"
         if len(alert_text) > 195:
-            alert_text = alert_text[:195] + "..."
+            alert_text = alert_text[:192] + "..."
         await query.answer(text=alert_text, show_alert=True)
     else:
         # They got it wrong.
-        alert_text = f"❌ WRONG! No points for you.\n\nExplanation: {explanation}"
+        alert_text = f"❌ You made a mistake! But that's okay, you can improve your skills by participating in these challenges! 💪\n\n💡 {explanation}"
         if len(alert_text) > 195:
-            alert_text = alert_text[:195] + "..."
+            alert_text = alert_text[:192] + "..."
         await query.answer(text=alert_text, show_alert=True)
 
 
