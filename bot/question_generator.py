@@ -32,13 +32,13 @@ def generate_question():
         "question": "The actual question text (e.g. 'What is the output?', 'What is the time complexity?'). PLAIN TEXT ONLY.",
         "options": ["Option A", "Option B", "Option C", "Option D"],
         "correct_option_id": 0,
-        "explanation": "A concise explanation. Use basic HTML <code> or <b> tags."
+        "explanation": "A concise explanation. PLAIN TEXT ONLY. Use `backticks` for code snippets. DO NOT use HTML tags."
     }
     
     CRITICAL RESTRICTIONS (for Telegram API compatibility):
     1. "question" MUST NOT exceed 290 characters and must be PLAIN TEXT ONLY (no HTML tags).
     2. "options" must contain EXACTLY 4 entries, each under 95 characters (PLAIN TEXT ONLY).
-    3. "explanation" MUST NOT exceed 150 characters.
+    3. "explanation" MUST NOT exceed 150 characters (Plain text only, absolute NO HTML).
     4. "correct_option_id" must be an integer (0, 1, 2, or 3).
     5. Deliver standard VALID JSON. Do NOT wrap inside ```json or ``` blocks.
     6. Escape all internal quotes properly so the JSON remains valid.

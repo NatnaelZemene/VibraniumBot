@@ -101,7 +101,10 @@ async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     correct_idx = context.bot_data.get(f"quiz_{quiz_id}_correct")
     answered_users = context.bot_data.get(f"quiz_{quiz_id}_answered")
+    
+    # Get the explanation and clean up any leftover HTML tags (Telegram pop-ups do not support HTML)
     explanation = context.bot_data.get(f"quiz_{quiz_id}_explanation", "")
+    explanation = explanation.replace("<code>", "`").replace("</code>", "`").replace("<b>", "").replace("</b>", "")
     
     # If the bot restarted or the quiz is too old to be in memory
     if correct_idx is None or answered_users is None:
