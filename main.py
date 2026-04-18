@@ -42,9 +42,12 @@ def main():
     application.add_handler(PollAnswerHandler(handle_poll_answer))
 
     # 4. Schedule the daily job & weekly job
-    # Using UTC by default
-    target_time_daily = datetime.time(hour=10, tzinfo=datetime.timezone.utc) # 10:00 AM UTC
-    target_time_weekly = datetime.time(hour=20, tzinfo=datetime.timezone.utc) # 8:00 PM UTC (Sunday Evening)
+    # EAT (Ethiopian Time) is UTC+3.
+    # 8:00 AM Ethiopian Time -> 5:00 AM UTC (05:00)
+    target_time_daily = datetime.time(hour=5, minute=0, tzinfo=datetime.timezone.utc)
+    
+    # 8:00 PM Ethiopian Time on Sundays -> 5:00 PM UTC (17:00)
+    target_time_weekly = datetime.time(hour=17, minute=0, tzinfo=datetime.timezone.utc)
     
     job_queue = application.job_queue
     job_queue.run_daily(callback=send_daily_quiz, time=target_time_daily)
@@ -52,25 +55,14 @@ def main():
     # days=(6,) means Sunday in Python datetime format 
     job_queue.run_daily(callback=announce_weekly_winners, time=target_time_weekly, days=(6,))
     
-    logger.info(f"Bot scheduled to broadcast questions at {target_time_daily} UTC")
-    logger.info(f"Bot scheduled to announce winners on Sundays at {target_time_weekly} UTC")
+    logger.info(f"Bot scheduled to broadcast questions at {target_time_daily} UTC (8:00 AM EAT)")
+    logger.info(f"Bot scheduled to announce winners on Sundays at {target_time_weekly} UTC (8:00 PM EAT)")
     
     # 5. Start the web server and polling
     logger.info("Starting web server to stay awake...")
     keep_alive()
     
     logger.info("Bot is polling...")
-    application.run_polling()
-
-if __name__ == "__main__":
-    main() 
-    job_queue.run_daily(callback=announce_weekly_winners, time=target_time_weekly, days=(6,))
-    
-    logger.info(f"Bot scheduled to broadcast questions at {target_time_daily} UTC")
-    logger.info(f"Bot scheduled to announce winners on Sundays at {target_time_weekly} UTC")
-    logger.info("Bot is polling...")
-    
-    # 5. Start Polling for commands
     application.run_polling()
 
 if __name__ == "__main__":
